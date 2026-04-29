@@ -4,11 +4,83 @@
 #include <unistd.h>
 #include <time.h>
 
+#define WIDTH 80
+#define HEIGHT 25
+
+#define GROUND_Y 20
 #define WORLD 1000
+
+int isBlock(int x, int y) {
+    if (y == 0 && x >= 35 && x <= 50) {
+        return 1;
+    }
+
+    if (y == 15 && x >= 75 && x <= 90) {
+        return 1;
+    }
+
+    if (y == 20 && x >= 130 && x <= 145) {
+        return 1;
+    }
+    
+    return 0;
+
+}
+//unfinished isPit function (Currently placeholder values)
+int isPit(int x) {
+    if (x >= 55 && x <= 65) {
+        return 1;
+    }
+
+    if (x >= 110 && x <= 120) {
+        return 1;
+    }
+
+    if (x >= 170 && x <= 180) {
+        return 1;
+    }
+    
+    return 0;
+    
+}
+//unfinished isPit function (Currently placeholder values)
+int isObstacle(int x, int y) {
+    if (y == GROUND_Y - 1 && x == 20) {
+        return 1;
+    }
+
+    if (y == GROUND_Y - 1 && x == 100) {
+        return 1;
+    }
+
+    if (y == GROUND_Y - 1 && x == 150) {
+        return 1;
+    }
+
+    return 0;
+}
 
 int main(){
 
+    int speed;
+    int marioX = 0;
+    int marioY = GROUND_Y - 1;
 
+    int velocityY = 0;
+    int jumping = 0;
+
+    int cameraX = 0;
+    int castleX = 0;
+    int marioX = 0;
+    int marioY = 0;
+    int starX = 0;
+    int starY = GROUND_Y - 1;
+
+    int hasStar = 0;
+    int starTimer = 0;
+
+    int win = 0;
+    int gameover = 0;
 
   char world[WORLD];
 
@@ -63,7 +135,21 @@ int main(){
                 hasStar = 0;
             }
         }
-        
+
+    // Ground Collision maybe?
+        if (!isPit(marioX) && marioY >= GROUND_Y - 1){
+            marioY = GROUND_Y - 1;
+            velocityY = 0;
+            jumping = 0;
+        }
+
+        // Platform Collision prototype
+        if (velocityY >= 0) {
+            if (isBlock(marioX, marioY + 1)) {
+                velocityY = 0
+                jumping = 0
+            }
+        }
   
 
 
@@ -74,7 +160,31 @@ int main(){
 
   }
 
+// WIN and GAMEOVER screens prototype
+    clear();
 
+    if (win) {
+        move(10,30);
+        printw("You Win!");
+        move(12,22);
+        printw("Mario has reached the castle!");
+    } else {
+        move(10,30);
+        printw("GAME OVER");
+        move(12,22);
+        printw("Mario hit an obstacle or fell into a pit.");
+    }
+
+    move(15,22);
+    printw("Press any key to exit game.");
+
+    nodelay(stdscr, FALSE);
+    getch();
+    
+    endwin();
+
+    return 0;
+}
 
 
 }
