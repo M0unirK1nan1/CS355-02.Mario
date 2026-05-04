@@ -10,6 +10,8 @@
 #define GROUND_Y 20
 #define WORLD 1000
 
+static int  hasGround[WORLD];
+
 int isBlock(int x, int y) {
     if (y == 0 && x >= 35 && x <= 50) {
         return 1;
@@ -59,6 +61,71 @@ int isObstacle(int x, int y) {
 
     return 0;
 }
+
+//display world in the terminal
+void Animation(int marioX, int marioY, int cameraX, int hasStar, int starTimer, int speed) {
+    clear();
+    // world tiles 
+    for (int i = 0; i < WIDTH; i++) {
+        int dis = cameraX + i;
+        if (dis < 0 || dis >= WORLD){ 
+            continue;
+        }
+ 
+        // ground
+        if (hasGround[dis]) {
+            mvaddch(GROUND_Y, i, '=');
+            for (int j = GROUND_Y + 1; j < HEIGHT - 1; j++)
+                mvaddch(j, i, '#');
+        }
+ 
+        // objects sitting on the ground 
+        switch (world[dis]) {
+            case TILE_OBSTACLE:
+                mvaddch(GROUND_Y - 1, i, 'X');
+                break;
+            case TILE_STAR:
+                mvaddch(GROUND_Y - 1, i, '*');
+                break;
+            case TILE_CASTLE:
+                // display the castle
+                mvaddch(GROUND_Y - 4, i, '^');
+                mvaddch(GROUND_Y - 3, i, '|');
+                mvaddch(GROUND_Y - 2, i, '|');
+                mvaddch(GROUND_Y - 1, i, '|');
+                break;
+        }
+    }
+ 
+    // Player 
+    int x = marioX - camX;
+    if (x >= 0 && x < WIDTH && marioY >= 0 && marioY < HEIGHT) {
+        if (hasStar) attron(A_BOLD);
+        // '$' when star-powered, '@' normally 
+        mvaddch(marioY, x, hasStar ? '$' : '@');
+        if (hasStar) attroff(A_BOLD);
+    }
+    //player controls
+    mvprintw(0, 0, "Speed:%d  [SPACE/UP]=Jump  [Q]=Quit", speed);
+ 
+    // progress bar 
+    int bar     = 30;
+    int progress = (marioX * bar) / (WORLD - 1);
+    if (progress > bar) progress = bar;
+
+    mvprintw(0, 45, "Progress:[");
+
+    for (int p = 0; p < bar; p++)
+        addch(p < progress ? '#' : '-');
+    addch(']');
+ 
+    // star power indicator 
+    if (hasStar)
+        mvprintw(1, 0, "*** STAR POWER ACTIVE: %3d frames ***", starTimer);
+ 
+    refresh();
+}
+
 
 int main(){
 
@@ -157,6 +224,8 @@ int main(){
         if (WORLD == 0){
             break;
         }
+
+        Animation(marioX, marioY, cameraX, hasStar, starTimer, speed);
 
   }
 
