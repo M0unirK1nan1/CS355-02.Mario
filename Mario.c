@@ -9,6 +9,20 @@
 
 #define GROUND_Y 20
 #define WORLD 250
+#define MAX_PITS 6
+#define MAX_OBS 20
+#define MAX_STARS 5
+
+typedef struct {
+    int xStart;
+    int xEnd;
+} Pit;
+
+typedef struct {
+    int x;
+    int baseY;
+    int active;
+} Star;
 
 int isBlock(int x, int y) {
     if (y == 0 && x >= 35 && x <= 50) {
@@ -42,6 +56,14 @@ int isPit(int x) {
     
     return 0;
     
+}
+//pits edit(fix later)
+void spawn_pits() {
+    for (int i = 0; i < MAX_PITS; i++) {
+        int start = 70 + i * 60 + rand()%15;
+        pits[i].xStart = start;
+        pits[i].xEnd = start + 4 + rand()%2; 
+    }
 }
 //unfinished isPit function (Currently placeholder values)
 int isObstacle(int x, int y) {
@@ -181,6 +203,21 @@ int main(){
         if (isPit(marioX) && marioY > GROUND_Y) {
             gameover = 1;
             win = 0;
+        }
+
+        //edited pit collision(fix later)
+        for (int i = 0; i < MAX_PITS; i++) {
+
+            if (onGround &&
+                marioX >= pits[i].xStart &&
+                marioX <= pits[i].xEnd) {
+
+                mvprintw(H/2, W/2-6, "GAME OVER");
+                refresh();
+                usleep(2000000);
+                endwin();
+                return 0;
+            }
         }
         // Generate World
         for (int x = cameraX; x < cameraX + WIDTH; x++) {
