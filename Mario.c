@@ -4,10 +4,13 @@
 #include <time.h>
 #include <curses.h>
 
+//W x H of the bash terminal in order to play the game
 #define WIDTH 80
 #define HEIGHT 24
 
+//ground variable
 #define GROUND_Y 20
+//length of the level
 #define WORLD_SIZE 250
 
 int isBlock(int x, int y) {
@@ -83,6 +86,7 @@ int main() {
 
     int ch;
 
+    //user chooses the constant speed
     printf("Enter Mario speed from 1 to 5: ");
     scanf("%d", &speed);
 
@@ -94,18 +98,20 @@ int main() {
         speed = 5;
     }
 
+    //randomize the star powerup spot
     srand(time(NULL));
     do {
     starX = 40 + rand() % 130;
     } while (isPit(starX));
 
+    //curses library to call the game
     initscr();
     noecho();
     curs_set(0);
     keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);
 
-    while (!gameOver) {
+    while (!gameOver) { //while loop to show in game functionality 
         clear();
 
         oldX = marioX;
@@ -119,7 +125,7 @@ int main() {
         if (ch == 'q') {
             gameOver = 1;
         }
-
+        //when player moves to the left
         if (ch == KEY_LEFT) {
             for (int i = 0; i < speed; i++) {
                 marioX--;
@@ -140,7 +146,8 @@ int main() {
                 }
             }
         }
-
+        
+        //when player moves to the right
         if (ch == KEY_RIGHT) {
             for (int i = 0; i < speed; i++) {
                 marioX++;
@@ -203,9 +210,7 @@ int main() {
         }
 
 
-            //Obstacle collision
-
-
+        //Obstacle collision
         if (isObstacle(marioX, marioY) && !hasStar) {
             gameOver = 1;
             win = 0;
@@ -221,13 +226,12 @@ int main() {
 
 
         //Mario collects star
-
         if (!starCollected && marioX >= starX - 1 && marioX <= starX + 1 && marioY == starY) {
             starCollected = 1;
             hasStar = 1;
             starTimer = 80;
         }
-
+        // Mario star timer limit decrement
         if (hasStar) {
             starTimer--;
 
@@ -264,7 +268,7 @@ int main() {
         } else {
             printw("OFF");
         }
-
+        
         move(1, 0);
         printw("Left/Right arrows to move. Space or Up arrow to jump. q to quit.");
 
@@ -337,7 +341,7 @@ int main() {
     }
 
     clear();
-
+    //if else block based on in-game interaction of reaching the castle or causing a game over
     if (win) {
         move(10, 30);
         printw("YOU WIN!");
@@ -352,10 +356,10 @@ int main() {
 
     move(15, 22);
     printw("Press any key to exit.");
-
+    
     nodelay(stdscr, FALSE);
     getch();
-
+    //Game is ended
     endwin();
 
     return 0;
