@@ -111,7 +111,8 @@ int main() {
     keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);
 
-    while (!gameOver) { //while loop to show in game functionality 
+    //while loop to show in game functionality
+    while (!gameOver) {  
         clear();
 
         oldX = marioX;
