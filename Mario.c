@@ -25,15 +25,15 @@ typedef struct {
 } Star;
 
 int isBlock(int x, int y) {
-    if (y == 0 && x >= 35 && x <= 50) {
+    if (y == 13 && x >= 35 && x <= 50) {
         return 1;
     }
 
-    if (y == 15 && x >= 75 && x <= 90) {
+    if (y == 16 && x >= 75 && x <= 90) {
         return 1;
     }
 
-    if (y == 20 && x >= 130 && x <= 145) {
+    if (y == 13 && x >= 130 && x <= 145) {
         return 1;
     }
     
@@ -92,8 +92,8 @@ int main(){
     int jumping = 0;
 
     int cameraX = 0;
-    int castleX = 0;
-    int marioX = 0;
+    int castleX = 220;
+    int marioX = 2;
     int marioY = 0;
     int starX = 0;
     int starY = GROUND_Y - 1;
@@ -149,7 +149,57 @@ int main(){
             velocityY = &speed; 
             jumping = 0;
         }
+        
+        // Mario Left Input
+        if (character == KEY_LEFT) {
+            for (int i = 0; i < speed; i++) {
+                marioX--;
 
+                if (marioX < 0) {
+                marioX = 0;
+                }
+
+                if (isObstacle(marioX, marioY) && !hasStar) {
+                    gameOver = 1;
+                    win = 0;
+                    }
+
+                if (!starCollected && marioX >= starX - 1 && marioX <= starX + 1 && marioY == starY) {
+                    starCollected = 1;
+                    hasStar = 1;
+                    starTimer = 80;
+                }
+            }
+        }
+
+        // Mario Right Input
+        if (ch == KEY_RIGHT) {
+            for (int i = 0; i < speed; i++) {
+                marioX++;
+
+                if (marioX >= WORLD_SIZE) {
+                    marioX = WORLD_SIZE - 1;
+                }
+
+                if (isObstacle(marioX, marioY) && !hasStar) {
+                    gameOver = 1;
+                    win = 0;
+                }
+
+                if (!starCollected && marioX >= starX - 1 && marioX <= starX + 1 && marioY == starY) {
+                    starCollected = 1;
+                    hasStar = 1;
+                    starTimer = 80;
+                }
+            }
+        }
+        
+        // Mario Jump Input
+        if ((ch == ' ' || ch == KEY_UP) && jumping == 0) {
+            velocityY = -4;
+            jumping = 1;
+        }
+        
         velocityY +=1;
         marioY += velocityY;
         
