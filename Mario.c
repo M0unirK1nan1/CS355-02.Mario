@@ -85,7 +85,7 @@ int isObstacle(int x, int y) {
 int main(){
 
     int speed;
-    int marioX = 0;
+    int marioX = 2;
     int marioY = GROUND_Y - 1;
 
     int velocityY = 0;
@@ -93,13 +93,12 @@ int main(){
 
     int cameraX = 0;
     int castleX = 220;
-    int marioX = 2;
-    int marioY = 0;
     int starX = 0;
     int starY = GROUND_Y - 1;
 
     int hasStar = 0;
     int starTimer = 0;
+    int starCollected = 0;
 
     int win = 0;
     int gameover = 0;
@@ -144,11 +143,6 @@ int main(){
         clear();
 
         int character = getch();
-
-        if (character == ' ' && !jumping){ //When mario is not jumping
-            velocityY = &speed; 
-            jumping = 0;
-        }
         
         // Mario Left Input
         if (character == KEY_LEFT) {
@@ -160,7 +154,7 @@ int main(){
                 }
 
                 if (isObstacle(marioX, marioY) && !hasStar) {
-                    gameOver = 1;
+                    gameover = 1;
                     win = 0;
                     }
 
@@ -173,16 +167,16 @@ int main(){
         }
 
         // Mario Right Input
-        if (ch == KEY_RIGHT) {
+        if (character == KEY_RIGHT) {
             for (int i = 0; i < speed; i++) {
                 marioX++;
 
-                if (marioX >= WORLD_SIZE) {
-                    marioX = WORLD_SIZE - 1;
+                if (marioX >= WORLD) {
+                    marioX = WORLD - 1;
                 }
 
                 if (isObstacle(marioX, marioY) && !hasStar) {
-                    gameOver = 1;
+                    gameover = 1;
                     win = 0;
                 }
 
@@ -195,7 +189,7 @@ int main(){
         }
         
         // Mario Jump Input
-        if ((ch == ' ' || ch == KEY_UP) && jumping == 0) {
+        if ((character == ' ' || character == KEY_UP) && jumping == 0) {
             velocityY = -4;
             jumping = 1;
         }
@@ -209,9 +203,10 @@ int main(){
             jumping = 0;
         }
 
-        if ((!hasStar &&  marioX == starX) && (!hasStar && marioY == starY)){}{ //once Mario makes contact with the star
+        if (!starCollected && marioX == starX && marioY == starY) {
+            starCollected = 1;
             hasStar = 1;
-            starTimer = 8;
+            starTimer = 80;
         }
 
         if (hasStar){ //Star timer 
@@ -306,10 +301,9 @@ int main(){
             break;
         }
 
-  }
 
   // Mario Generation
-  int marioScreenX = marioX - cameraX;
+        int marioScreenX = marioX - cameraX;
 
         if (marioScreenX >= 0 && marioScreenX < WIDTH) {
             move(marioY, marioScreenX);
@@ -350,7 +344,4 @@ int main(){
     endwin();
 
     return 0;
-}
-
-
 }
