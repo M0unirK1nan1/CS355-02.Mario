@@ -1,134 +1,87 @@
 #include <stdio.h>
-#include <curses.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <curses.h>
 
-#define W 80
-#define H 25
+#define WIDTH 80
+#define HEIGHT 24
 
 #define GROUND_Y 20
-#define WORLD 250
-#define MAX_PITS 6
-#define MAX_OBS 20
-#define MAX_STARS 5
-
-typedef struct {
-    int xStart;
-    int xEnd;
-} Pit;
-
-typedef struct {
-    int x;
-    int baseY;
-    int active;
-} Star;
-
-Pit pits[MAX_PITS];
+#define WORLD_SIZE 250
 
 int isBlock(int x, int y) {
-    if (y == 13 && x >= 35 && x <= 50) {
+    if (y == 13 && x >= 35 && x <= 45) {
         return 1;
     }
 
-    if (y == 16 && x >= 75 && x <= 90) {
+    if (y == 13 && x >= 75 && x <= 90) {
         return 1;
     }
 
-    if (y == 13 && x >= 130 && x <= 145) {
+    if (y == 16 && x >= 130 && x <= 145) {
         return 1;
     }
-    
+
     return 0;
-
 }
-//unfinished isPit function (Currently placeholder values)
+
 int isPit(int x) {
-    if (x >= 55 && x <= 65) {
+    if (x >= 55 && x <= 62) {
         return 1;
     }
 
-    if (x >= 110 && x <= 120) {
+    if (x >= 110 && x <= 118) {
         return 1;
     }
 
     if (x >= 170 && x <= 180) {
         return 1;
     }
-    
+
     return 0;
-    
 }
-//pits edit(fix later)
-void spawn_pits() {
-    for (int i = 0; i < MAX_PITS; i++) {
-        int start = 70 + i * 60 + rand()%15;
-        pits[i].xStart = start;
-        pits[i].xEnd = start + 4 + rand()%2; 
-    }
-}
-//unfinished isPit function (Currently placeholder values)
+
 int isObstacle(int x, int y) {
-    if (y == GROUND_Y - 1 && x == 20) {
+    if (y == GROUND_Y - 1 && x == 28) {
         return 1;
     }
 
-    if (y == GROUND_Y - 1 && x == 100) {
+    if (y == GROUND_Y - 1 && x == 95) {
         return 1;
     }
 
-    if (y == GROUND_Y - 1 && x == 150) {
+    if (y == GROUND_Y - 1 && x == 155) {
         return 1;
     }
 
     return 0;
 }
 
-int main(){
-
+int main() {
     int speed;
     int marioX = 2;
     int marioY = GROUND_Y - 1;
+
+    int oldX;
+    int oldY;
 
     int velocityY = 0;
     int jumping = 0;
 
     int cameraX = 0;
     int castleX = 220;
-    int starX = 0;
-    int starY = GROUND_Y - 1;
 
+    int starX;
+    int starY = GROUND_Y - 1;
+    int starCollected = 0;
     int hasStar = 0;
     int starTimer = 0;
-    int starCollected = 0;
 
+    int gameOver = 0;
     int win = 0;
-    int gameover = 0;
 
-    char world[WORLD];
-
-  //variables to implement the curses library
-    initscr();
-    curs_set(FALSE);
-    nodelay(stdscr, TRUE);
-    keypad(stdscr, TRUE);
-    srand(time(NULL));
-    //randomized obstacles (Note from Aidan: Do the obstacles need to be randomized? I made code to generate obstacles below if you like it otherwise we can use your code)
-    for (int i = 0; i <= WORLD; i++){
-        int obstacle = rand() % 3;
-        if (obstacle < 2){
-            world[i] = 'X';
-        }
-        else if (obstacle < 3){
-            world[i] = '*';
-        }
-        else{
-            world[i] = ' ';
-        }
-  }
-    int castle = WORLD - 1;
-
-
+    int ch;
 
     printf("Enter Mario speed from 1 to 5: ");
     scanf("%d", &speed);
@@ -141,13 +94,33 @@ int main(){
         speed = 5;
     }
 
-    while (!gameover && !win){ //while loop to dictate in-game physics of the player
+    srand(time(NULL));
+    do {
+    starX = 40 + rand() % 130;
+    } while (isPit(starX));
+
+    initscr();
+    noecho();
+    curs_set(0);
+    keypad(stdscr, TRUE);
+    nodelay(stdscr, TRUE);
+
+    while (!gameOver) {
         clear();
 
-        int character = getch();
-        
-        // Mario Left Input
-        if (character == KEY_LEFT) {
+        oldX = marioX;
+        oldY = marioY;
+
+        /*
+            INPUT
+        */
+        ch = getch();
+
+        if (ch == 'q') {
+            gameOver = 1;
+        }
+
+        if (ch == KEY_LEFT) {
             for (int i = 0; i < speed; i++) {
                 marioX--;
 
@@ -156,7 +129,7 @@ int main(){
                 }
 
                 if (isObstacle(marioX, marioY) && !hasStar) {
-                    gameover = 1;
+                    gameOver = 1;
                     win = 0;
                     }
 
@@ -168,17 +141,16 @@ int main(){
             }
         }
 
-        // Mario Right Input
-        if (character == KEY_RIGHT) {
+        if (ch == KEY_RIGHT) {
             for (int i = 0; i < speed; i++) {
                 marioX++;
 
-                if (marioX >= WORLD) {
-                    marioX = WORLD - 1;
+                if (marioX >= WORLD_SIZE) {
+                    marioX = WORLD_SIZE - 1;
                 }
 
                 if (isObstacle(marioX, marioY) && !hasStar) {
-                    gameover = 1;
+                    gameOver = 1;
                     win = 0;
                 }
 
@@ -189,125 +161,167 @@ int main(){
                 }
             }
         }
-        
-        // Mario Jump Input
-        if ((character == ' ' || character == KEY_UP) && jumping == 0) {
+
+        if ((ch == ' ' || ch == KEY_UP) && jumping == 0) {
             velocityY = -4;
             jumping = 1;
         }
-        
-        velocityY +=1;
+
+
+        if (marioX < 0) {
+            marioX = 0;
+        }
+
+        if (marioX >= WORLD_SIZE) {
+            marioX = WORLD_SIZE - 1;
+        }
+
+
+        //Gravity
+
         marioY += velocityY;
-        
-        if (marioY >= GROUND_Y){ //when Mario is Idle
-            marioY = GROUND_Y;
+        velocityY++;
+
+        if (velocityY < 0 && isBlock(marioX, marioY)) {
+            marioY = marioY + 1;
+            velocityY = 0;
+        }
+
+
+            //Ground Collision
+        if (!isPit(marioX) && marioY >= GROUND_Y - 1) {
+            marioY = GROUND_Y - 1;
             velocityY = 0;
             jumping = 0;
         }
 
-        if (!starCollected && marioX == starX && marioY == starY) {
+
+        //Platform Collision
+        if (velocityY >= 0 && isBlock(marioX, marioY + 1)) {
+            velocityY = 0;
+            jumping = 0;
+        }
+
+
+            //Obstacle collision
+
+
+        if (isObstacle(marioX, marioY) && !hasStar) {
+            gameOver = 1;
+            win = 0;
+        }
+
+
+        //Mario falls into pit
+
+        if (isPit(marioX) && marioY > GROUND_Y) {
+            gameOver = 1;
+            win = 0;
+        }
+
+
+        //Mario collects star
+
+        if (!starCollected && marioX >= starX - 1 && marioX <= starX + 1 && marioY == starY) {
             starCollected = 1;
             hasStar = 1;
             starTimer = 80;
         }
 
-        if (hasStar){ //Star timer 
+        if (hasStar) {
             starTimer--;
-            if (starTimer <= 0){
+
+            if (starTimer <= 0) {
                 hasStar = 0;
             }
         }
 
-        //Camera following Mario
+
+        //WIN CONDITION
+
+        if (marioX >= castleX) {
+            gameOver = 1;
+            win = 1;
+        }
+
+
+        //CAMERA FOLLOWS MARIO
+
         cameraX = marioX - 10;
 
         if (cameraX < 0) {
             cameraX = 0;
         }
 
-        // Obstacle collision
-        if (isObstacle(marioX, marioY) && !hasStar) {
-        gameover = 1;
-        win = 0;
+
+        //GENERATE HUD
+
+        move(0, 0);
+        printw("Mario X: %d   Speed: %d   Star: ", marioX, speed);
+
+        if (hasStar) {
+            printw("ON ");
+        } else {
+            printw("OFF");
         }
 
-        // Ground Collision maybe?
-        if (!isPit(marioX) && marioY >= GROUND_Y - 1){
-            marioY = GROUND_Y - 1;
-            velocityY = 0;
-            jumping = 0;
-        }
+        move(1, 0);
+        printw("Left/Right arrows to move. Space or Up arrow to jump. q to quit.");
 
-        // Platform Collision prototype
-        if (velocityY >= 0) {
-            if (isBlock(marioX, marioY + 1)) {
-                velocityY = 0;
-                jumping = 0;    
-            }
-        }
-
-        // Falling into a pit
-        if (isPit(marioX) && marioY > GROUND_Y) {
-            gameover = 1;
-            win = 0;
-        }
-
-        //edited pit collision(fix later)
-        for (int i = 0; i < MAX_PITS; i++) {
-
-            if (GROUND_Y && 
-                marioX >= pits[i].xStart &&
-                marioX <= pits[i].xEnd) {
-
-                mvprintw(H/2, W/2-6, "GAME OVER");
-                refresh();
-                usleep(2000000);
-                endwin();
-                return 0;
-            }
-        }
-        // Generate World
-        for (int x = cameraX; x < cameraX + W; x++) {
+        /*
+            GENERATE
+        */
+        for (int x = cameraX; x < cameraX + WIDTH; x++) {
             int screenX = x - cameraX;
 
-            // Generate ground unless there is a pit
+            //Generate ground unless there is a pit
             if (!isPit(x)) {
                 move(GROUND_Y, screenX);
                 addch('=');
             }
 
-            // Generate platforms
-            for (int y = 0; y < H; y++) {
+
+            //Generate platforms
+            for (int y = 0; y < HEIGHT; y++) {
                 if (isBlock(x, y)) {
                     move(y, screenX);
                     addch('#');
                 }
             }
 
-            // Generate obstacles
+            //generate obstacles
             if (isObstacle(x, GROUND_Y - 1)) {
                 move(GROUND_Y - 1, screenX);
                 addch('X');
             }
-            // Generate star if not collected yet
+
+                //Generate star if it has not been collected
             if (!starCollected && x == starX) {
                 move(starY, screenX);
                 addch('*');
             }
-            //Generate castle/flag goes here
 
+
+                //Generate castle
+            if (x == castleX) {
+                move(GROUND_Y - 1, screenX);
+                addch('|');
+
+                move(GROUND_Y - 2, screenX);
+                addch('|');
+
+                move(GROUND_Y - 3, screenX);
+                addch('|');
+
+                move(GROUND_Y - 4, screenX);
+                addch('^');
+            }
         }
-        
 
-        if (WORLD == 0){
-            break;
-        }
-
-
-  // Mario Generation
+        //generate mario
         int marioScreenX = marioX - cameraX;
 
-        if (marioScreenX >= 0 && marioScreenX < W) {
+        if (marioScreenX >= 0 && marioScreenX < WIDTH) {
             move(marioY, marioScreenX);
 
             if (hasStar) {
@@ -322,27 +336,26 @@ int main(){
         usleep(80000);
     }
 
-// WIN and GAMEOVER screens prototype
     clear();
 
     if (win) {
-        move(10,30);
-        printw("You Win!");
-        move(12,22);
-        printw("Mario has reached the castle!");
+        move(10, 30);
+        printw("YOU WIN!");
+        move(12, 22);
+        printw("Mario reached the castle!");
     } else {
-        move(10,30);
+        move(10, 30);
         printw("GAME OVER");
-        move(12,22);
+        move(12, 18);
         printw("Mario hit an obstacle or fell into a pit.");
     }
 
-    move(15,22);
-    printw("Press any key to exit game.");
+    move(15, 22);
+    printw("Press any key to exit.");
 
     nodelay(stdscr, FALSE);
     getch();
-    
+
     endwin();
 
     return 0;
