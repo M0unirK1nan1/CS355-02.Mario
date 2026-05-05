@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <time.h>
 
-#define WIDTH 80
-#define HEIGHT 25
+#define W 80
+#define H 25
 
 #define GROUND_Y 20
 #define WORLD 250
@@ -23,6 +23,8 @@ typedef struct {
     int baseY;
     int active;
 } Star;
+
+Pit pits[MAX_PITS];
 
 int isBlock(int x, int y) {
     if (y == 13 && x >= 35 && x <= 50) {
@@ -253,7 +255,7 @@ int main(){
         //edited pit collision(fix later)
         for (int i = 0; i < MAX_PITS; i++) {
 
-            if (onGround &&
+            if (GROUND_Y && 
                 marioX >= pits[i].xStart &&
                 marioX <= pits[i].xEnd) {
 
@@ -265,7 +267,7 @@ int main(){
             }
         }
         // Generate World
-        for (int x = cameraX; x < cameraX + WIDTH; x++) {
+        for (int x = cameraX; x < cameraX + W; x++) {
             int screenX = x - cameraX;
 
             // Generate ground unless there is a pit
@@ -275,7 +277,7 @@ int main(){
             }
 
             // Generate platforms
-            for (int y = 0; y < HEIGHT; y++) {
+            for (int y = 0; y < H; y++) {
                 if (isBlock(x, y)) {
                     move(y, screenX);
                     addch('#');
@@ -305,7 +307,7 @@ int main(){
   // Mario Generation
         int marioScreenX = marioX - cameraX;
 
-        if (marioScreenX >= 0 && marioScreenX < WIDTH) {
+        if (marioScreenX >= 0 && marioScreenX < W) {
             move(marioY, marioScreenX);
 
             if (hasStar) {
